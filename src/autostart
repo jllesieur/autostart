@@ -1,0 +1,54 @@
+#! /bin/bash
+### BEGIN INIT INFO
+# Provides:          nova
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Autostart version 0.1
+# Description:       Démarrage des services dans l'espace utilisateur
+### END INIT INFO
+
+
+function autostart () { 
+	for environnement in `ls /home`
+	do
+		echo "Exploration de /home/$environnement ..."
+		if [ -d "/home/$environnement/autostart" ]
+		then
+			user=$environnement
+			scriptdir="/home/$environnement/autostart/$1.d"
+			echo "-- Lancement des script de $scriptdir"
+			if [ -d "$scriptdir" ]
+                	then
+				for script in `ls $scriptdir`
+        			do
+					echo "-Lancement de $script"
+					su - $user -c "$scriptdir/$script"
+				done
+                	fi
+		fi
+	done
+
+}
+
+
+
+# Some things that run always
+touch /var/lock/autostart
+
+# Carry out specific functions when asked to by the system
+case "$1" in
+  start)
+    autostart start
+    ;;
+  stop)
+    autostart stop
+    ;;
+  *)
+    echo "Usage: /etc/init.d/autostart {start|stop}"
+    exit 1
+    ;;
+esac
+
+exit 0
